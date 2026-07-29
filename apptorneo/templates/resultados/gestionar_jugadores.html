@@ -1,0 +1,48 @@
+<!--Esta es el HTML que extiende de la base. Aquí mostraremos los jugadores de un torneo y podremos modificar sus puntuaciones tanto individuales, como en grupo -->
+
+{% extends "base.html" %}
+
+{% block title %}Detalles del torneo{% endblock %}
+
+{% block content %}
+    <h2 class="titulo">Gestionar Jugadores - {{ torneo.nombre }}</h2>
+    <p class="subtitulo"><strong>Jugadores inscritos:</strong></p>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="tabla-wrapper">
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th>Jugador</th>
+                        <th>Posición</th>
+                        <th>Puntuación actual</th>
+                        <th>Nueva puntuación</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for jugador in resultados %}
+                    <tr>
+                        <td>{{ jugador.jugador.username }}</td>
+                        <td>{{ jugador.posicion}}</td>
+                        <td>{{ jugador.puntos|default:0 }}</td>
+                        <td>
+                            <input type="number" name="puntos_{{ jugador.jugador.id }}" value="{{ jugador.puntos|default:0 }}" min="0">
+                        </td>
+                        <td>
+                            <button type="submit" class="btn-secundario" name="guardar_jugador_{{ jugador.jugador.id }}">Guardar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="form-acciones">
+            <button type="submit" class="btn-primario">Guardar puntuaciones</button>
+            <button type="button" class="btn-secundario" onclick="location.href='{% url 'detalle_torneo' torneo.pk %}'">Volver al detalle del torneo</button>
+        </div>
+    </form>
+
+{% endblock %}

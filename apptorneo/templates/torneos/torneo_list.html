@@ -1,0 +1,142 @@
+<!--HTML para listar torneos-->
+
+{% extends "base.html" %}
+
+{% block title %}Lista de Torneos{% endblock %}
+
+{% block content %}
+
+    <h2 class="titulo">Torneos</h2>
+
+    <!-- Aquí mostraremos la lista de torneos, con paginación y filtros -->
+    <div class="grid-2col">
+        <!-- Columna izquierda (Filtros y Tabla de torneos) -->
+        <div class="col-izquierda">
+
+            <!-- Filtros -->
+            <div class="filtros">
+                <h3 class="subtitulo">Filtros</h3>
+                <form method="get" class="filtros-torneos">
+                    <input type="text" name="nombre" placeholder="Buscar por nombre" value="{{ request.GET.nombre }}">
+
+                    <input type="text" name="juego" placeholder="Buscar por juego" value="{{ request.GET.juego }}">
+
+                    <select name="orden_fecha">
+                        <option value=""> Ordenar por fecha </option>
+                        <option value="asc" {% if request.GET.orden_fecha == 'asc' %} selected {% endif %}> Más antiguos primero </option>
+                        <option value="desc" {% if request.GET.orden_fecha == 'desc' %} selected {% endif %}> Más recientes primero </option>
+                    </select>
+
+                    <select name="activo">
+                        <option value="">Todos</option>
+                        <option value="1" {% if request.GET.activo == '1' %}selected{% endif %}>Activos</option>
+                        <option value="0" {% if request.GET.activo == '0' %}selected{% endif %}>Inactivos</option>
+                    </select>
+                    
+                    <button type="submit" >Filtrar</button>
+                    <button type="button" onclick="window.location.href='{% url 'lista_torneos' %}'">Limpiar Filtros</button>
+
+                    <label class="checkbox">
+                        <input type="checkbox" name="con_plazas" value="1" {% if request.GET.con_plazas %} checked {% endif %}> Solo con plazas
+                    </label>
+                </form>
+            </div>
+
+            <!-- Tabla de torneos -->
+            <div class="tabla-wrapper">
+                {% if torneos %}
+                    <table class="tabla">
+                        <thead>
+                            <tr>
+                                <th>Nombre torneo</th>
+                                <th>Descripción</th>
+                                <th>Fecha finalización</th>
+                                <th>Capacidad</th>
+                                <th>Activo</th>
+                                <th>Ver detalles</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for torneo in torneos %}
+                            <tr>
+                                <td>{{ torneo.nombre }}</td>
+                                <td class="col-descripcion" title="{{ torneo.descripcion }}">{{ torneo.descripcion }}</td>
+                                <td>{{ torneo.fecha_fin }}</td>
+                                <td>{{ torneo.jugadores.count }}  de  {{ torneo.max_jugadores }}</td>
+                                <td>
+                                    <!-- Aqui mostramos el estado del torneo -->
+                                    {% if torneo.fin_torneo %}
+                                        <span class="badge badge-finalizado"><span class="badge-dot"></span>Finalizado</span>
+                                    {% elif torneo.activo %}
+                                        <span class="badge badge-activo"><span class="badge-dot"></span>Activo</span>
+                                    {% else %}
+                                        <span class="badge badge-inactivo"><span class="badge-dot"></span>Inactivo</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <button class="btn-secundario" onclick="location.href='{% url 'detalle_torneo' torneo.id %}'">Ver torneo</button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% else %}
+                    <p>No hay torneos disponibles.</p>
+                {% endif %}
+            </div>
+
+            <!-- Paginación -->
+            <div class="paginacion">
+                {% if page_obj.has_previous %}
+                    <a href="?page={{ page_obj.previous_page_number }}&nombre={{ request.GET.nombre }}&juego={{ request.GET.juego }}&orden_fecha={{ request.GET.orden_fecha }}&activo={{ request.GET.activo }}&con_plazas={{ request.GET.con_plazas }}">Anterior</a>
+                {% endif %}
+
+                <span>
+                    Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+                </span>
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}&nombre={{ request.GET.nombre }}&juego={{ request.GET.juego }}&orden_fecha={{ request.GET.orden_fecha }}&activo={{ request.GET.activo }}&con_plazas={{ request.GET.con_plazas }}">Siguiente</a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Columna derecha (Información del usuario/organizador) -->
+        <div class="col-derecha">
+
+            <div class="panel-info">
+
+                {% if user.role == 'organizador' %}
+                    <p>Organizador: {{ user.username }} <button class="btn-secundario" onclick="location.href='{% url 'logout' %}'">Cerrar sesión</button></p>
+                    <button class="btn-primario" onclick="location.href='{% url 'crear_torneo' %}'">
+                        Crear torneo
+                    </button>
+
+                {% else %}
+                    <p>Jugador: {{ user.username }} <button class="btn-secundario" onclick="location.href='{% url 'logout' %}'">Cerrar sesión</button></p>
+
+                    <p><strong>Torneos activos:</strong> {{ torneos_activos }}</p>
+                    <p><strong>Media puntos:</strong> {{ media_puntos }}</p>
+                    <p><strong>Puntos totales:</strong> {{ puntos_totales }}</p>
+                {% endif %}
+
+            </div>
+
+            {% if user.role == 'jugador' %}
+                <div class="panel-torneos-usuario">
+                    <h3>Torneos apuntados</h3>
+
+                    {% for r in resultados_usuario %}
+                        <p>
+                            {{ r.torneo.nombre }} — Posición {{ r.posicion }} ({{ r.puntos }} pts)
+                        </p>
+                    {% empty %}
+                        <p>No estás en ningún torneo.</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+        </div>
+    </div>
+    
+{% endblock %}

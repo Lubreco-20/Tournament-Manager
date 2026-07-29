@@ -1,0 +1,36 @@
+<!-- Este es un HTML para comprobar que el usuario es un organizador mediante una clave que solo deben conocer los organizadores-->
+
+{% extends "base.html" %}
+
+{% block title %}Control de organizadores{% endblock %}
+
+{% block content %}
+
+<div class="pagina">
+    <div class="tarjeta">
+        <h2>Control de organizadores</h2>
+        <p class="tarjeta-subtitulo">Ingrese la clave de organizador para registrarse como organizador:</p>
+
+        <form method="post">
+            {% csrf_token %}
+            
+            <!-- Si el usuario no es un organizador, mostrar un mensaje de error, de lo contrario, permitirá registrarse como organizador -->
+            <div class="campo">
+                <label for="clave">Clave de organizador</label>
+                <div class="input-wrap">
+                    <input type="password" id="clave" name="clave" placeholder="Clave de organizador">
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primario btn-bloque">Continuar</button>
+
+            <div class="divider"><span>¿Ya tienes una cuenta?</span></div>
+
+            <button type="button" class="btn-secundario btn-bloque" onclick="location.href='{% url 'login' %}'">
+                        Iniciar sesión
+            </button>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

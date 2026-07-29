@@ -1,0 +1,175 @@
+<!--Esta es el HTML que extiende de la base. Aquí mostraremos los detalles de un torneo-->
+
+{% extends "base.html" %}
+
+{% block title %}Detalles del torneo{% endblock %}
+
+{% block content %}
+
+<!--En este bloque de contenido mostraremos toda el contenido de un torneo-->
+<h2 class="titulo">{{torneo.nombre}}</h2>
+
+<div class="grid-2col">
+    <div class='col-izquierda'>
+        <section>
+            <p>
+                <strong>Descripción:</strong>
+                <div class="panel-descripcion">
+                    {{torneo.descripcion}}
+                </div>
+            </p>
+
+            <p><strong>Juego: </strong>{{torneo.juego}}</p>
+            
+            <p>
+                <strong>Max. Jugadores: </strong>
+                {{torneo.jugadores.count}}/{{torneo.max_jugadores}}&nbsp;&nbsp;
+                {% if user.role == 'organizador' %}
+                    <button class="btn-secundario" onclick="location.href='{% url 'gestionar_jugadores' torneo.pk %}'">Gestionar jugadores</button>
+                {% endif %}
+            </p>
+            
+            <p><strong>Fecha de Inicio: </strong>{{torneo.fecha_inicio}}</p>
+
+            <p><strong>Fecha de Finalización: </strong>{{torneo.fecha_fin}}</p>
+
+            <p><strong>Estado:&nbsp;&nbsp;</strong>
+                {% if torneo.fin_torneo %}
+                    <span class="badge badge-finalizado"><span class="badge-dot"></span>Finalizado</span>
+                {% elif torneo.activo %}
+                    <span class="badge badge-activo"><span class="badge-dot"></span>Activo</span>
+                {% else %}
+                    <span class="badge badge-inactivo"><span class="badge-dot"></span>Inactivo</span>
+                {% endif %}
+            </p>
+
+            <!-- Botones para editar un torneo o eliminarlo. Solo puede hacerlo el organizador -->
+            {% if user.role == 'organizador' %}
+                <div class="form-acciones">
+                    <button class="btn-secundario" onclick="location.href='{% url 'editar_torneo' torneo.pk %}'">Editar torneo</button>
+                    <button class="btn-peligro" onclick="mostrarConfirmacion()">Eliminar torneo</button>
+                </div>
+
+                <!-- Ventana emergente para confirmar la eliminación -->
+                <div id="confirmacion" style="display:none;">
+
+                    <p>¿Estás seguro?</p>
+
+                    <form method="post"
+                        action="{% url 'eliminar_torneo' torneo.pk %}">
+
+                        {% csrf_token %}
+
+                        <button type="submit" class="btn-primario">Sí, eliminar</button>
+                        <button type="button" class="btn-primario" onclick="ocultarConfirmacion()">Cancelar</button>
+
+                    </form>
+
+                </div>
+
+            <!-- Comentarios para informar al usuario -->
+            {% else %}
+                <div class="form-acciones">
+                    <!--Si el usuario es un jugador, le mostraremos un botón para inscribirse al torneo si el torneo está activo y no ha alcanzado el número máximo de jugadores-->
+                    {% if torneo.fin_torneo %}
+                        <p>Este torneo ya ha finalizado.</p>
+                    {% elif not torneo.activo %}
+                        <p>Este torneo ya no está activo.</p>
+                    {% elif user in torneo.jugadores.all %}
+                        <p>Ya estás inscrito en este torneo.</p>
+                        <button class="btn-peligro" onclick="location.href='{% url 'cancelar_inscripcion' torneo.pk %}'">Cancelar inscripción</button>
+                    {% elif torneo.jugadores.count >= torneo.max_jugadores %}
+                        <p>Este torneo ya ha alcanzado el número máximo de jugadores.</p>
+                    {% else %}
+                        <button class="btn-primario" onclick="location.href='{% url 'inscribir_torneo' torneo.pk %}'">Inscribirse al torneo</button>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <div class="form-acciones">
+                <button class="btn-secundario" onclick="location.href='{% url 'lista_torneos' %}'">Volver a la lista de torneos</button>
+            </div>
+        </section>
+
+        <!-- Lista de jugadores inscritos  por orden de llegada -->
+        <section class="lista-inscritos">
+            <h3 class="subtitulo">Jugadores inscritos:</h3>
+            <div class="tabla-wrapper">
+                <table class="tabla">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Puntuación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in inscritos %}
+                        <tr>
+                            <td>{{ item.username }}</td>
+                            <td>{{ item.puntos }}</td>
+                        </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2">No hay jugadores inscritos.</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Columna derecha (Información sobre as posiciones de jugadores) -->
+    <div class='col-derecha'>
+        <section class="podio">
+            <h3 class="subtitulo">Podio</h3>
+            <ol class='podio-lista'>
+                <!-- Mostramos el top 3 -->
+                {% for resultado in top3 %}
+                    <li class="podio-item podio-{{ forloop.counter }}">
+                        <span class="podio-nombre">{{ resultado.jugador.username }}</span>
+                        <span class="podio-puntos">{{ resultado.puntos }} pts</span>
+                    </li>
+                    {% empty %}
+                        <li>No hay resultados aún.</li>
+                {% endfor %}
+            </ol>
+        </section>
+
+        <!-- Mostramos el ranking de los siguientes 3 jugadores -->
+        <section class="mini-ranking">
+            <h4 class="subtitulo">Ranking 4-6</h4>
+            <ol>
+                {% for resultado in mini_ranking %}
+                <li>
+                    {{ forloop.counter|add:"3" }}.
+                    {{ resultado.jugador.username }}
+                    — {{ resultado.puntos }} pts
+                </li>
+                {% empty %}
+                <li>No hay más resultados.</li>
+                {% endfor %}
+            </ol>
+        </section>
+    </div>
+</div>
+
+<!-- Script para la ventana emergente para confirmar la eliminación -->
+<script>
+
+    function mostrarConfirmacion() {
+        document.getElementById(
+            'confirmacion'
+        ).style.display = 'block';
+    }
+
+    function ocultarConfirmacion() {
+        document.getElementById(
+            'confirmacion'
+        ).style.display = 'none';
+    }
+
+</script>
+
+{% endblock %}

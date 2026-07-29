@@ -1,0 +1,41 @@
+<!--Aqui crearemos una base HTML para implementarla en las diferencias plantillas-->
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="es">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        
+        <title>
+            {% block title %}{% endblock %}
+        </title>
+
+        <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+        
+    </head>
+    <body class="base-body">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {{message.tags}}">
+                    {{message}}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <main>
+            {% block content %}
+            <!--Aquí irá el contenido específico de cada página-->
+            {% endblock %}
+        </main>
+
+        <footer class="base-footer">
+            {% block footer %}
+            <hr>
+            <p>Proyecto hecho por: Luis Bres Conesa</p>
+            {% endblock %}
+        </footer>
+
+    </body>
+</html>

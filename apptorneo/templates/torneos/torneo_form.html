@@ -1,0 +1,28 @@
+<!--HTML de un formulario para crear y editar nuevos torneos. Esta es un template que se puede reutilizar para ambos propósitos-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ titulo}}{% endblock %}
+
+{% block content %}
+
+    <div class="pagina">
+        <div class="tarjeta">
+            <h2>{{ encabezado }}</h2>
+
+            <form method="post">
+                {% csrf_token %} <!--Añadimos esto para evitar la falsificación de petición entre sitios-->
+                {{ form.as_p }} <!--Esto crea un método que renderiza todos los campos del formulario-->
+
+                <div class="form-acciones">
+                    <button type="submit" class="btn-primario">{{ texto_boton }}</button>
+                    <button type="button" class="btn-secundario" 
+                            onclick="location.href='{% if object.pk %}{% url 'detalle_torneo' object.pk %}{% else %}{% url 'lista_torneos' %}{% endif %}'">
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+<!-- HTML para hacer login de un usuario, ya sea jugador u organizador -->
+
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+
+<div class="pagina">
+  <div class="tarjeta">
+    <h2>Iniciar sesión</h2>
+    <p class="tarjeta-subtitulo">Accede a tu cuenta para continuar</p>
+
+    <form method="post">
+      {% csrf_token %}
+
+      <div class="campo">
+        <label for="email">Email</label>
+        <div class="input-wrap">
+          <input type="text" id="email" name="email" placeholder="tu@email.com">
+        </div>
+      </div>
+
+      <div class="campo">
+        <label for="password">Contraseña</label>
+        <div class="input-wrap">
+          <input type="password" id="password" name="password" placeholder="••••••••">
+        </div>
+      </div>
+
+      <button type="submit" class="btn-primario btn-bloque" style="flex-direction:column">Iniciar sesión</button>
+
+      <!-- Aqui separamos la parte de login de los botones de registro -->
+      <div class="divider"><span>¿No tienes cuenta?</span></div>
+
+      <div class="form-acciones" style="flex-direction:column">
+        <button type="button" class="btn-secundario"
+                onclick="location.href='{% url 'registro' %}?tipo_usuario=jugador'">
+          Registrarse como jugador
+        </button>
+        <button type="button" class="btn-secundario"
+                onclick="location.href='{% url 'registro' %}?tipo_usuario=organizador'">
+          Registrarse como organizador
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock %}
