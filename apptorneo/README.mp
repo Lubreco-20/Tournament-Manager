@@ -1,1 +1,0 @@
-El código para crear un usuario con rol de organizador es TORNEO2026
